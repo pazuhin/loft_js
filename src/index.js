@@ -104,10 +104,9 @@ function slice(array, from = 0, to = array.length) {
  */
 function createProxy(obj) {
     let proxy = new Proxy(obj, {
-        get(obj, prop) {
-            if (prop in obj) {
-                return obj[prop] * obj[prop];
-            }
+        set: function(obj, prop, val) {
+
+            return obj[prop] = val*val;
         }
     });
 
