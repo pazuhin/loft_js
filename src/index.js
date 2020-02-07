@@ -17,24 +17,21 @@
    isAllTrue([100, 2, 3, 4, 5], n => n < 10) // вернет false
  */
 function isAllTrue(array, fn) {
-    if (!array.length) {
-        throw new Error('empty array')
-    } else if (Array.isArray(array) === false) {
+    if (!array.length || Array.isArray(array) === false) {
         throw new Error('empty array')
     } else if (typeof (fn) !== 'function') {
         throw new Error('fn is not a function')
     }
-    var flag = true;
-
     for (let i = 0; i < array.length; i++) {
         const res = fn(array[i]);
 
         if (res === false) {
-            flag = false;
+
+            return false;
         }
     }
 
-    return flag ? flag : flag;
+    return true;
 }
 
 /*
@@ -54,9 +51,7 @@ function isAllTrue(array, fn) {
    isSomeTrue([1, 2, 3, 4, 5], n => n > 20) // вернет false
  */
 function isSomeTrue(array, fn) {
-    if (!array.length) {
-        throw new Error('empty array')
-    } else if (Array.isArray(array) === false) {
+    if (!array.length || Array.isArray(array) === false) {
         throw new Error('empty array')
     } else if (typeof (fn) !== 'function') {
         throw new Error('fn is not a function')
@@ -85,20 +80,20 @@ function isSomeTrue(array, fn) {
  3.3: Необходимо выбрасывать исключение в случаях:
    - fn не является функцией (с текстом "fn is not a function")
  */
-function returnBadArguments(fn) {
+function returnBadArguments(fn, ...args) {
     if (typeof (fn) !== 'function') {
         throw new Error('fn is not a function')
     }
-    if (arguments.length == 1) {
+    if (args.length == 0) {
         return [];
     }
     const errors = [];
 
-    for (let i = 1; i < arguments.length; i++) {
+    for (let i = 0; i < args.length; i++) {
         try {
-            fn(arguments[i]);
+            fn(args[i]);
         } catch (e) {
-            errors.push(arguments[i]);
+            errors.push(args[i]);
         }
     }
 
