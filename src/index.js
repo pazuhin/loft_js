@@ -107,6 +107,9 @@ function createProxy(obj) {
         set: function(obj, prop, val) {
 
             return obj[prop] = val*val;
+        },
+        get: function(obj, prop) {
+            return obj[prop];
         }
     });
 
