@@ -26,7 +26,33 @@ const homeworkContainer = document.querySelector('#homework-container');
    const newDiv = createDiv();
    homeworkContainer.appendChild(newDiv);
  */
+function randomInteger(min, max) {
+    let rand = min + Math.random() * (max + 1 - min);
+
+    return Math.floor(rand);
+}
+
+function generateColor() {
+    return '#' + Math.floor(Math.random()*16777215).toString(16);
+}
+
 function createDiv() {
+    const elem = document.createElement('div');
+    let color = generateColor();
+
+    elem.style.backgroundColor = color;
+
+    elem.style.left = randomInteger(1, 800) + 'px';
+    elem.style.right = randomInteger(1, 800) + 'px';
+    elem.style.top = randomInteger(1, 500) + 'px';
+    elem.style.bottom = randomInteger(1, 500) + 'px';
+    elem.style.width = randomInteger(1, 100) + 'px';
+    elem.style.height = randomInteger(1, 100) + 'px';
+    elem.style.position = 'absolute';
+    elem.classList.add('draggable-div');
+    elem.draggable = true;
+
+    return elem;
 }
 
 /*
@@ -38,6 +64,18 @@ function createDiv() {
    addListeners(newDiv);
  */
 function addListeners(target) {
+    function handleDragStart(e) {
+        // x = e.pageX;
+        // y = e.pageY;
+    }
+
+    function handleDragEnd(e) {
+        target.style.left = e.pageX - target.offsetWidth / 2 + 'px';
+        target.style.top = e.pageY - target.offsetHeight / 2 + 'px';
+    }
+
+    target.addEventListener('dragstart', handleDragStart);
+    target.addEventListener('dragend', handleDragEnd);
 }
 
 let addDivButton = homeworkContainer.querySelector('#addDiv');
@@ -48,6 +86,7 @@ addDivButton.addEventListener('click', function() {
 
     // добавить на страницу
     homeworkContainer.appendChild(div);
+
     // назначить обработчики событий мыши для реализации D&D
     addListeners(div);
     // можно не назначать обработчики событий каждому div в отдельности, а использовать делегирование
