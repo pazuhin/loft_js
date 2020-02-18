@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <div id="homework-container">
+        <a href="#" class="btn">click me!</a>
+       <div class="error" style="display: none;">"Не удалось загрузить города"</div>
+        <div id="loading-block" style="display: none;">Загрузка...</div>
+        <div id="filter-block" style="display: none;">
+            <input type="text" placeholder="Введите название города" id="filter-input">
+            <div class="matchCount" style="display: none;"></div>
+            <div class="matchList" style="display: none;"></div>
+            <div id="filter-result"></div>
+        </div>
+    </div>
+    <script>
+        const homeworkContainer = document.querySelector('#homework-container');
+        const btn = document.querySelector('.btn');
+        const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
+        const filterBlock = document.querySelector('#filter-block');
+        const filterInput = document.querySelector('#filter-input');
+        const matchCountBlock = document.querySelector('.matchCount');
+        const matchList = document.querySelector('.matchList');
+        const label = document.createElement('div');
+        const loadBlock = document.querySelector('#loading-block');
+        const error = document.querySelector('.error');
+        const citiesNames = [];
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadBlock.style.display = 'block';
+            loadTowns(url);
+        });
+        function loadTowns(url) {
+            fetch(url)
+                .then(response => response.ok ? response.json() : Promise.reject(response))
+                .then((towns) => {
+                    towns.sort((a, b) => {
+                        if (a.name > b.name) {
+                            return 1;
+                        }
+                        if (a.name < b.name) {
+                            return -1;
+                        }
+                    });
+                    createTextField();
+
+                    loadBlock.style.display = 'none';
+                    filterBlock.style.display = 'block';
+
+                    for (const town of towns) {
+                        citiesNames.push(town.name);
+                        homeworkContainer.appendChild(createCityDOM(town.name, towns.indexOf(town)));
+                    }
+                })
+                .catch(function () {
+                    error.style.display = 'block';
+                    loadBlock.style.display = 'none';
+                });
+
+        }
+        function createTextField() {
+            label.textContent = 'Поиск по списку городов';
+            homeworkContainer.appendChild(label).after(filterBlock);
+        }
+        function createCityDOM(town, index) {
+            const newTown = document.createElement('p');
+            newTown.textContent = ++index +'. ' + town;
+
+            return newTown;
+        }
+        filterInput.addEventListener('keyup', (e) => {
+           let matchArray = searchForMatches(citiesNames, filterInput.value);
+
+            matchCountBlock.style.display = 'block';
+            matchList.textContent = '';
+            matchList.style.display = 'block';
+
+           if (!matchArray || matchArray.length == 0) {
+               matchCountBlock.textContent = '( совпадений не найдено ! )';
+               matchList.style.display = 'none';
+           }
+            matchCountBlock.textContent = '( найдено : ' + matchArray.length + ' )';
+
+
+           for (let i = 0; i < matchArray.length; i++) {
+               matchList.innerHTML +=  matchArray[i] + '<br>';
+           }
+        });
+        function searchForMatches(citiesNames, value) {
+            var matchArray = [];
+            let regExp = new RegExp(value, 'i');
+
+            for (let i = 0; i < citiesNames.length; i++) {
+                if (citiesNames[i].match(regExp)) {
+                    matchArray.push(citiesNames[i]);
+                }
+            }
+
+            return matchArray;
+        }
+    </script>
+</body>
+</html>
+<style>
+    .btn {
+        display: inline-block;
+        color: white;
+        font-weight: 700;
+        text-decoration: none;
+        padding: .5em 2em;
+        outline: none;
+        border: 2px solid;
+        border-radius: 1px;
+        transition: 0.2s;
+        background: rgb(64,199,129);
+        margin-bottom: 15px;
+    }
+    .btn:hover {
+        background: rgb(33,147,90);
+    }
+    #filter-input {
+        width: 200px;
+        padding: 10px 0 10px 10px;
+        margin-bottom: 15px;
+        margin-top: 15px;
+        outline: none;
+        border-radius: 10px;
+        border: 1px solid grey;
+        color: grey;
+    }
+    #homework-container > p {
+        border-bottom: 1px solid grey;
+        padding-bottom: 5px;
+        display: flex;
+        justify-content: center;
+        width: 18%;
+    }
+</style>
