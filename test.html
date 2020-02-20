@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+</div>
+<hr>
+<div id="homework-container">
+    <div id="list-block">
+        Доступные cookie:
+        <table id="list-table">
+            <thead>
+            <tr>
+                <th>имя</th>
+                <th>значение</th>
+                <th>удалить</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <input id="filter-name-input" name="name" type="text">
+        <input id="add-name-input" name="name" type="text">
+        <input id="add-value-input" name="value" type="text">
+        <button id="add-button">добавить куку</button>
+    </div>
+</div>
+
+<script>
+    const homeworkContainer = document.querySelector('#homework-container');
+    const filterNameInput = homeworkContainer.querySelector('#filter-name-input');
+    const addNameInput = homeworkContainer.querySelector('#add-name-input');
+    const addValueInput = homeworkContainer.querySelector('#add-value-input');
+    const addButton = homeworkContainer.querySelector('#add-button');
+    const listTable = homeworkContainer.querySelector('#list-table tbody');
+    const deleteButtons = homeworkContainer.querySelectorAll('.deleteButton');
+
+    function searchForMatches(cookies, value) {
+        var matchArray = {};
+        console.log(value);
+        let regExp = new RegExp(value);
+
+        for (const key in cookies) {
+            if (key.match(regExp)) {
+                matchArray[key] = cookies[key];
+            }
+        }
+
+        return matchArray;
+    }
+
+    filterNameInput.addEventListener('keyup', function() {
+        let matchArray = searchForMatches(getCookies(), filterNameInput.value);
+
+        if (matchArray) {
+            renderTable(matchArray);
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', ()=>{
+        const allCookie = getCookies();
+
+        renderTable(allCookie);
+    });
+
+    addButton.addEventListener('click', () => {
+        const name = addNameInput.value;
+        const value = addValueInput.value;
+
+        addCookie(name, value);
+        addRowTable(name, value);
+        renderTable(getCookies());
+    });
+
+    function getCookies() {
+        const cookie = document.cookie;
+
+        return cookie.split('; ').reduce((prev, current)=>{
+            let [name, value] = current.split('=');
+
+            prev[name] = value;
+
+            return prev;
+        }, {})
+
+    }
+    function addCookie(name, value) {
+        document.cookie = `${name}=${value};`;
+    }
+
+    function addRowTable(name, value) {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        const tdValue = document.createElement('td');
+        const tdDel = document.createElement('td');
+        const button = document.createElement('button');
+
+        tdName.innerText = name;
+        tdValue.innerText = value;
+        button.innerText = 'Удалить';
+
+        button.dataset.name = name;
+        button.classList.add('deleteButton');
+        tdDel.appendChild(button);
+
+        tr.classList.add(name);
+        tr.appendChild(tdName);
+        tr.appendChild(tdValue);
+        tr.appendChild(tdDel);
+        listTable.appendChild(tr);
+    }
+
+    function renderTable(obj) {
+        listTable.innerHTML = '';
+
+        for (let key in obj) {
+            addRowTable(key, obj[key]);
+        }
+    }
+
+    listTable.addEventListener('click', (e) => {
+        if (e.target.classList.contains('deleteButton')) {
+            deleteCookie(e.target.getAttribute('data-name'));
+        }
+
+        renderTable(getCookies());
+    });
+
+    function deleteCookie(name) {
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+</script>
+</body>
+</html>
