@@ -44,17 +44,30 @@ const addButton = homeworkContainer.querySelector('#add-button');
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
 function searchForMatches(cookies, value) {
-    var matchArray = {};
-
+    var matchObj = {};
     let regExp = new RegExp(value);
 
+    if (value == '') {
+        return false;
+    }
+
     for (const key in cookies) {
-        if (key.match(regExp)) {
-            matchArray[key] = cookies[key];
+        if (key.match(regExp) || cookies[key].match(regExp)) {
+            matchObj[key] = cookies[key];
         }
     }
 
-    return matchArray;
+    return matchObj;
+}
+
+function search(val, value) {
+    let regExp = new RegExp(value);
+
+    if (val.match(regExp)){
+        return true;
+    }
+
+    return false;
 }
 
 filterNameInput.addEventListener('keyup', function() {
@@ -74,10 +87,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
 addButton.addEventListener('click', () => {
     const name = addNameInput.value;
     const value = addValueInput.value;
+    const filterValue = filterNameInput.value;
 
     addCookie(name, value);
-    addRowTable(name, value);
-    renderTable(getCookies());
+
+    if (filterValue) {
+        if (search(name, filterValue) || search(value, filterValue)) {
+            addRowTable(name, value);
+        }
+        if (getCookies().hasOwnProperty(name) && !search(value, filterValue)) {
+            deleteRowTable(getRowTable(name));
+        }
+    } else {
+        renderTable(getCookies());
+    }
 });
 
 function getCookies() {
@@ -93,9 +116,7 @@ function getCookies() {
 
 }
 function addCookie(name, value) {
-    if (name) {
-        document.cookie = `${name}=${value};`;
-    }
+    document.cookie = `${name}=${value};`;
 }
 
 function addRowTable(name, value) {
@@ -118,24 +139,33 @@ function addRowTable(name, value) {
     tr.appendChild(tdValue);
     tr.appendChild(tdDel);
     listTable.appendChild(tr);
+
+    button.addEventListener('click', (e) => {
+        if (e.target.classList.contains('deleteButton')) {
+            deleteCookie(e.target.getAttribute('data-name'));
+            listTable.removeChild(tr);
+        }
+    });
+}
+
+function deleteRowTable(row) {
+    row.parentNode.removeChild(row);
+}
+
+function getRowTable(name) {
+    return document.getElementsByClassName(name)[0];
+
 }
 
 function renderTable(obj) {
     listTable.innerHTML = '';
 
     for (let key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (key !== '') {
             addRowTable(key, obj[key]);
         }
     }
 }
-
-listTable.addEventListener('click', (e) => {
-    if (e.target.classList.contains('deleteButton')) {
-        deleteCookie(e.target.getAttribute('data-name'));
-    }
-    renderTable(getCookies());
-});
 
 function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
