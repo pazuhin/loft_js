@@ -29,65 +29,29 @@
    homeworkContainer.appendChild(newDiv);
  */
 const homeworkContainer = document.querySelector('#homework-container');
-const btn = document.querySelector('.btn');
-const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
-const filterBlock = document.querySelector('#filter-block');
-const filterInput = document.querySelector('#filter-input');
-const matchCountBlock = document.querySelector('.matchCount');
-const matchList = document.querySelector('.matchList');
-const label = document.createElement('div');
-const loadingBlock = document.querySelector('#loading-block');
-const error = document.querySelector('.error');
-const citiesNames = [];
+
 /*
  Функция должна вернуть Promise, который должен быть разрешен с массивом городов в качестве значения
 
  Массив городов пожно получить отправив асинхронный запрос по адресу
  https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
  */
-btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    loadBlock.style.display = 'block';
-    loadTowns(url);
-});
-
-function loadTowns(url) {
-    fetch(url)
-        .then(response => response.ok ? response.json() : Promise.reject(response))
-        .then((towns) => {
-            towns.sort((a, b) => {
-                if (a.name > b.name) {
-                    return 1;
-                }
-                if (a.name < b.name) {
-                    return -1;
-                }
-            });
-            createTextField();
-
-            loadBlock.style.display = 'none';
-            filterBlock.style.display = 'block';
-
-            for (const town of towns) {
-                citiesNames.push(town.name);
-                homeworkContainer.appendChild(createCityDOM(town.name, towns.indexOf(town)));
-            }
-        })
-        .catch(function () {
-            error.style.display = 'block';
-            loadBlock.style.display = 'none';
-        });
-
-}
-function createTextField() {
-    label.textContent = 'Поиск по списку городов';
-    homeworkContainer.appendChild(label).after(filterBlock);
-}
-function createCityDOM(town, index) {
-    const newTown = document.createElement('p');
-    newTown.textContent = ++index +'. ' + town;
-
-    return newTown;
+function loadTowns() {
+    return new Promise(((resolve, reject) => {
+        fetch('https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json')
+            .then(response => response.ok ? response.json() : reject())
+            .then((towns) => {
+                towns.sort((a, b) => {
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+                });
+                resolve(towns);
+            })
+    }))
 }
 /*
  Функция должна проверять встречается ли подстрока chunk в строке full
@@ -101,6 +65,9 @@ function createCityDOM(town, index) {
    isMatching('Moscow', 'Moscov') // false
  */
 function isMatching(full, chunk) {
+    let regExp = new RegExp(chunk, 'i');
+
+    return (full.search(regExp) !== -1);
 }
 
 /* Блок с надписью "Загрузка" */
@@ -111,37 +78,45 @@ const filterBlock = homeworkContainer.querySelector('#filter-block');
 const filterInput = homeworkContainer.querySelector('#filter-input');
 /* Блок с результатами поиска */
 const filterResult = homeworkContainer.querySelector('#filter-result');
+let citiesNames = [];
 
 filterInput.addEventListener('keyup', function() {
-    let matchArray = searchForMatches(citiesNames, filterInput.value);
-
-    matchCountBlock.style.display = 'block';
-    matchList.textContent = '';
-    matchList.style.display = 'block';
-
-    if (!matchArray || matchArray.length == 0) {
-        matchCountBlock.textContent = '( совпадений не найдено ! )';
-        matchList.style.display = 'none';
-    }
-    matchCountBlock.textContent = '( найдено : ' + matchArray.length + ' )';
-
-    for (let i = 0; i < matchArray.length; i++) {
-        matchList.innerHTML +=  matchArray[i] + '<br>';
-    }
+    filterResult.innerHTML = '';
+    addTowns(citiesNames);
 });
 
-function searchForMatches(citiesNames, value) {
-    var matchArray = [];
-    let regExp = new RegExp(value, 'i');
+function addTowns(towns) {
+    const fragment = document.createDocumentFragment();
 
-    for (let i = 0; i < citiesNames.length; i++) {
-        if (citiesNames[i].match(regExp)) {
-            matchArray.push(citiesNames[i]);
+    for (const town of towns) {
+        if (filterInput.value.length !== 0 && isMatching(town.name, filterInput.value)) {
+            const block = document.createElement('div');
+
+            block.innerText = town.name;
+            fragment.appendChild(block);
         }
     }
 
-    return matchArray;
+    filterResult.prepend(fragment)
 }
+
+function load() {
+    loadTowns().then(towns => {
+        citiesNames = towns;
+
+        loadingBlock.style.display = 'none';
+        filterBlock.style.display = 'block';
+    }).catch(() => {
+        loadingBlock.innerText = 'Не удалось загрузить города';
+        const btn = document.createElement('button');
+
+        btn.innerText = 'Повторить';
+        btn.addEventListener('click', load);
+        homeworkContainer.appendChild(btn);
+    })
+}
+
+load();
 
 export {
     loadTowns,
