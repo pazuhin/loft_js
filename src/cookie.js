@@ -43,40 +43,27 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-function searchForMatches(cookies, value) {
-    var matchObj = {};
-    let regExp = new RegExp(value);
+filterNameInput.addEventListener('keyup', function() {
+    const value = filterNameInput.value;
+    const allCookie = getCookies();
+    const res = filterObj(value, allCookie);
 
-    if (value == '') {
-        return false;
-    }
+    renderTable(res);
+});
 
-    for (const key in cookies) {
-        if (key.match(regExp) || cookies[key].match(regExp)) {
-            matchObj[key] = cookies[key];
+function filterObj(value, obj) {
+    let filterObj = {};
+
+    for (let key in obj) {
+        if (isMatching(key, value) || isMatching(obj[key], value)) {
+            if (obj.hasOwnProperty(key)) {
+                filterObj[key] = obj[key];
+            }
         }
     }
 
-    return matchObj;
+    return filterObj;
 }
-
-function search(val, value) {
-    let regExp = new RegExp(value);
-
-    if (val.match(regExp)){
-        return true;
-    }
-
-    return false;
-}
-
-filterNameInput.addEventListener('keyup', function() {
-    let matchArray = searchForMatches(getCookies(), filterNameInput.value);
-
-    if (matchArray) {
-        renderTable(matchArray);
-    }
-});
 
 window.addEventListener('DOMContentLoaded', ()=>{
     const allCookie = getCookies();
@@ -84,18 +71,28 @@ window.addEventListener('DOMContentLoaded', ()=>{
     renderTable(allCookie);
 });
 
+function deleteRowTable(row) {
+    row.parentNode.removeChild(row);
+}
+
+function getRowTable(name) {
+    return document.getElementsByClassName(name)[0];
+
+}
+
 addButton.addEventListener('click', () => {
     const name = addNameInput.value;
     const value = addValueInput.value;
     const filterValue = filterNameInput.value;
+    const allCookies = getCookies();
 
     addCookie(name, value);
 
     if (filterValue) {
-        if (search(name, filterValue) || search(value, filterValue)) {
+        if (isMatching(name, filterValue) || isMatching(value, filterValue)) {
             addRowTable(name, value);
         }
-        if (getCookies().hasOwnProperty(name) && !search(value, filterValue)) {
+        if (allCookies.hasOwnProperty(name) && !isMatching(value, filterValue)) {
             deleteRowTable(getRowTable(name));
         }
     } else {
@@ -148,15 +145,6 @@ function addRowTable(name, value) {
     });
 }
 
-function deleteRowTable(row) {
-    row.parentNode.removeChild(row);
-}
-
-function getRowTable(name) {
-    return document.getElementsByClassName(name)[0];
-
-}
-
 function renderTable(obj) {
     listTable.innerHTML = '';
 
@@ -169,4 +157,13 @@ function renderTable(obj) {
 
 function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+function isMatching(full, chunk) {
+    let regexp = new RegExp(chunk, 'i');
+
+    if (full.search(regexp) > -1) {
+        return true;
+    }
+
+    return false;
 }

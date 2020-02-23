@@ -37,47 +37,39 @@
     const addButton = homeworkContainer.querySelector('#add-button');
     const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-    function searchForMatches(cookies, value) {
-        var matchObj = {};
-        let regExp = new RegExp(value);
 
-        if (value == '') {
-            return false;
-        }
+    filterNameInput.addEventListener('keyup', function() {
+        const value = filterNameInput.value;
+        const allCookie = getCookies();
+        const res = filterObj(value, allCookie);
 
-        for (const key in cookies) {
-            if (key.match(regExp) || cookies[key].match(regExp)) {
-                matchObj[key] = cookies[key];
+        renderTable(res);
+    });
+
+    function filterObj(value, obj) {
+        let filterObj = {};
+
+        for (let key in obj) {
+            if (isMatching(key, value) || isMatching(obj[key], value)) {
+                if (obj.hasOwnProperty(key)) {
+                    filterObj[key] = obj[key];
+                }
             }
         }
 
-        return matchObj;
+        return filterObj;
     }
-
-    filterNameInput.addEventListener('keyup', function() {
-        let matchArray = searchForMatches(getCookies(), filterNameInput.value);
-
-        if (matchArray) {
-            renderTable(matchArray);
-        }
-    });
 
     window.addEventListener('DOMContentLoaded', ()=>{
         const allCookie = getCookies();
+
         renderTable(allCookie);
     });
-    function search(val, value) {
-        let regExp = new RegExp(value);
 
-        if (val.match(regExp)) {
-            return true;
-        }
-
-        return false;
-    }
     function deleteRowTable(row) {
         row.parentNode.removeChild(row);
     }
+
     function getRowTable(name) {
         return document.getElementsByClassName(name)[0];
 
@@ -86,17 +78,17 @@
     addButton.addEventListener('click', () => {
         const name = addNameInput.value;
         const value = addValueInput.value;
-        const filterValue = filterNameInput.value
-        let match = searchForMatches({[name]:value}, filterValue);
-        let matchValue = search(value, filterValue);
-        console.log(match)
+        const filterValue = filterNameInput.value;
+        const allCookie = getCookies();
+
         addCookie(name, value);
+        console.log(getCookies().hasOwnProperty(name));
+        console.log(!isMatching(value, filterValue));
         if (filterValue) {
-            if (search(name, filterValue) || search(value, filterValue)) {
+            if (isMatching(name, filterValue) || isMatching(value, filterValue)) {
                 addRowTable(name, value);
             }
-            if (getCookies().hasOwnProperty(name) && !search(value, filterValue)) {
-                console.log(getCookies().hasOwnProperty(name));
+            if (allCookie.hasOwnProperty(name) && !isMatching(value, filterValue)) {
                 deleteRowTable(getRowTable(name));
             }
         } else {
@@ -161,6 +153,15 @@
 
     function deleteCookie(name) {
         document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+    function isMatching(full, chunk) {
+        let regexp = new RegExp(chunk, 'i');
+
+        if (full.search(regexp) > -1) {
+            return true;
+        }
+
+        return false;
     }
 </script>
 </body>
